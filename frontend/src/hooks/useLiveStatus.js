@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import api from '../services/api';
 
 /**
- * Custom hook that polls /api/status, returns live metadata,
+ * Institutional Status Monitor - Deployment Version: v2.2.1
+ * Custom hook that polls /status, returns live metadata,
  * and provides a countdown until the next auto-refresh.
  */
 export function useLiveStatus(pollIntervalMs = 30000) {
@@ -14,7 +13,7 @@ export function useLiveStatus(pollIntervalMs = 30000) {
 
   const fetchStatus = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/status`);
+      const res = await api.get('/status');
       setStatus(res.data.data);
       setLastRefresh(new Date());
       setCountdown(pollIntervalMs / 1000);
