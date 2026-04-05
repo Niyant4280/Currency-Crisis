@@ -34,17 +34,24 @@ const Home = () => {
   const fetchData = async () => {
     try {
       const res = await getLeaderboard();
+      if (!res?.data?.data) throw new Error("MALFORMED DATA SIGNAL");
+      
       const mapped = res.data.data.map(c => ({
-        iso_code: c.country_code, name: c.country_name,
-        currency: c.currency_code, latest_stress_score: c.score, risk_level: c.risk_level
+        iso_code: c.country_code || "UNK",
+        name: c.country_name || "Unknown Entity",
+        currency: c.currency_code || "---",
+        latest_stress_score: c.score || 0,
+        risk_level: c.risk_level || "UNKNOWN"
       }));
-      setCountries(mapped);
-      checkAlerts(mapped);
+      setCountries(mapped || []);
+      if (mapped) checkAlerts(mapped);
       setLoading(false);
     } catch (err) {
       console.error("[Institutional Audit] Connectivity Failure:", err);
-      const status = err.response ? `HTTP ${err.response.status}` : (err.request ? "NETWORK TIMEOUT" : "CLIENT ERROR");
+      // Detailed diagnostics for the 'Client Error' vs 'Network' vs 'Backend'
+      const status = err.response ? `HTTP ${err.response.status}` : (err.request ? "NETWORK TIMEOUT" : `APP ERROR: ${err.message}`);
       setError(`Unable to reach backend (${status})`);
+      setCountries([]);
       setLoading(false);
     }
   };
