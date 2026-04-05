@@ -57,16 +57,15 @@ def _get_latest_indicators(country_code: str):
                 entry["trend"] = "↑" if latest["value"] > prev["value"] else "↓"
             else:
                 entry["trend"] = "—"
-            results[itype] = [entry] # Consistent array wrapper for the frontend .at(-1)
+            results[itype] = entry
         elif baseline and itype in baseline:
-            # Inject a fallback baseline entry
-            results[itype] = [{
+            results[itype] = {
                 "value": baseline[itype],
                 "indicator_type": itype,
                 "is_estimate": True,
                 "trend": "—",
                 "source": f"Institutional Regional Baseline ({region})"
-            }]
+            }
     return results
 
 
@@ -114,15 +113,26 @@ def get_country(code):
 def get_indicators(code):
     """10 years of indicator data grouped by type."""
     code = code.upper()
-    indicator_types = ["inflation", "reserves", "debt_gdp", "current_account", "fx_volatility"]
+    # Regional baseline lookup
+    country = db.countries.find_one({"code": code})
+    region = country.get("region", "GLB") if country else "GLB"
+    baseline = db.baselines.find_one({"region": region}) or db.baselines.find_one({"region": "GLB"})
+    
     grouped = {}
     for itype in indicator_types:
-        docs = list(
-            db.indicators
-            .find({"country_code": code, "indicator_type": itype})
-            .sort("recorded_date", 1)
-        )
-        grouped[itype] = [_serialize(d) for d in docs]
+        docs = list(db.indicators.find({"country_code": code, "indicator_type": itype}).sort("recorded_date", 1))
+        serialized = [_serialize(d) for d in docs]
+        
+        # If history is empty, inject baseline
+        if not serialized and baseline and itype in baseline:
+            serialized = [{
+                "value": baseline[itype],
+                "indicator_type": itype,
+                "is_estimate": True,
+                "recorded_date": "2024-01-01",
+                "trend": "—"
+            }]
+        grouped[itype] = serialized
     return jsonify({"success": True, "data": grouped})
 
 
