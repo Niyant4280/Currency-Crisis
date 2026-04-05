@@ -10,6 +10,7 @@ import Compare from './pages/Compare';
 import WorldMap from './pages/WorldMap';
 import Calendar from './pages/Calendar';
 import Contagion from './pages/Contagion';
+import Features from './pages/Features';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Route path="/map" element={<WorldMap />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/contagion" element={<Contagion />} />
+          <Route path="/features" element={<Features />} />
         </Routes>
       </main>
     </div>
