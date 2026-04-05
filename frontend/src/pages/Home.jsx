@@ -115,30 +115,30 @@ const Home = () => {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       {/* Back + Actions row */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <button onClick={() => navigate('/')}
-          className="group flex items-center space-x-2 px-4 py-2 bg-slate-800/80 hover:bg-slate-700/80 rounded-full text-slate-300 font-medium transition-all border border-slate-700/50">
+          className="group flex items-center justify-center space-x-2 px-6 py-3 bg-slate-800/80 hover:bg-slate-700/80 rounded-2xl text-slate-300 font-bold transition-all border border-slate-700/50 sm:w-auto w-full">
           <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-          <span>Home</span>
+          <span>Return Home</span>
         </button>
-        <div className="flex items-center space-x-3">
+        <div className="grid grid-cols-2 sm:flex items-center gap-3">
           {/* Alert threshold */}
-          <div className="flex items-center space-x-2 px-3 py-2 glass-panel rounded-xl border border-slate-700/50 text-sm">
-            <span className="text-slate-400">🔔 Alert ≥</span>
+          <div className="flex items-center justify-center space-x-2 px-3 py-2.5 glass-panel rounded-xl border border-slate-700/50 text-sm">
+            <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Alert ≥</span>
             <input
               type="number" min="0" max="100"
               value={alertThreshold}
               onChange={e => setAlertThreshold(Number(e.target.value))}
               onBlur={() => { saveThreshold(alertThreshold); requestPermission(); }}
-              className="w-12 bg-transparent text-white font-bold text-center focus:outline-none"
+              className="w-10 bg-transparent text-white font-black text-center focus:outline-none"
             />
           </div>
           <button onClick={() => navigate('/compare')}
-            className="px-4 py-2 glass-panel rounded-xl border border-slate-700/50 text-slate-300 text-sm hover:border-indigo-500/40 transition">
+            className="px-4 py-2.5 glass-panel rounded-xl border border-slate-700/50 text-slate-300 text-[11px] font-black uppercase tracking-widest hover:border-indigo-500/40 transition">
             ⚖️ Compare
           </button>
           <button onClick={() => navigate('/map')}
-            className="px-4 py-2 glass-panel rounded-xl border border-slate-700/50 text-slate-300 text-sm hover:border-indigo-500/40 transition">
+            className="hidden sm:block px-4 py-2.5 glass-panel rounded-xl border border-slate-700/50 text-slate-300 text-[11px] font-black uppercase tracking-widest hover:border-indigo-500/40 transition">
             🗺 World Map
           </button>
         </div>
@@ -167,32 +167,32 @@ const Home = () => {
       </AnimatePresence>
 
       {/* Filter / Sort bar */}
-      <div className="flex flex-col md:flex-row justify-between items-center bg-slate-900/40 p-4 rounded-2xl glass-panel relative z-10">
-        <div className="flex space-x-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
+      <div className="flex flex-col lg:flex-row justify-between items-center bg-slate-900/40 p-4 rounded-2xl glass-panel relative z-10 gap-6">
+        <div className="flex space-x-2 overflow-x-auto w-full lg:w-auto pb-4 lg:pb-0 scrollbar-hide mask-fade-right">
           {REGIONS.map(region => (
             <button key={region} onClick={() => setFilterRegion(region)}
-              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 whitespace-nowrap ${
+              className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${
                 filterRegion === region
                   ? 'bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700/50'
+                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700 border border-slate-700/50'
               }`}>
               {region}
             </button>
           ))}
         </div>
-        <div className="mt-4 md:mt-0 flex items-center space-x-3">
-          <span className="text-sm font-medium text-slate-400">Sort by:</span>
+        <div className="flex items-center justify-between w-full lg:w-auto space-x-4 border-t lg:border-t-0 border-slate-800 pt-4 lg:pt-0">
+          <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Sort Analytics</span>
           <select value={sortOption} onChange={e => setSortOption(e.target.value)}
-            className="bg-slate-800 text-white px-4 py-2 rounded-xl text-sm border border-slate-700/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium appearance-none">
-            <option value="stress_desc">Stress Score ↓</option>
-            <option value="stress_asc">Stress Score ↑</option>
-            <option value="name">Alphabetical</option>
+            className="bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs border border-slate-700/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold appearance-none min-w-[140px]">
+            <option value="stress_desc">Stress: High → Low</option>
+            <option value="stress_asc">Stress: Low → High</option>
+            <option value="name">Alphabetical (A-Z)</option>
           </select>
         </div>
       </div>
 
       {/* Country Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
         {displayedCountries.map((c, index) => (
           <CountryCard key={c.iso_code} country={c} rank={index + 1} animationDelay={index}
             isWatched={isWatched(c.iso_code)} onWatchToggle={() => toggle(c.iso_code)} />

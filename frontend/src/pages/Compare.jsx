@@ -76,7 +76,7 @@ const Compare = () => {
       </div>
 
       {/* Selection */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {[0, 1].map(i => (
           <div key={i} className="glass-card p-5">
             <div className="flex items-center space-x-2 mb-3">
@@ -138,7 +138,7 @@ const Compare = () => {
       </div>
 
       {/* Stat comparison cards */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {selected.map((code, i) => {
           const c = getCountry(code);
           if (!c) return null;

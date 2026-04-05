@@ -39,7 +39,9 @@ const NavDropdown = ({ title, children, icon }) => {
 
 const Navbar = () => {
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [countries, setCountries] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     getLeaderboard().then(res => {
@@ -73,6 +75,11 @@ const Navbar = () => {
       isActive ? 'bg-indigo-500/20 text-indigo-400' : 'text-slate-400 hover:bg-slate-800 hover:text-white'
     }`;
 
+  const mobileLink = ({ isActive }) => 
+    `block px-4 py-3 rounded-2xl text-base font-bold transition-all ${
+      isActive ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/20' : 'text-slate-300 hover:bg-slate-800'
+    }`;
+
   return (
     <>
       <motion.nav 
@@ -91,7 +98,8 @@ const Navbar = () => {
               </NavLink>
             </div>
 
-            <div className="flex items-center space-x-1">
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-1">
               <NavLink to="/dashboard" className={navItem} end>
                 <div className="flex items-center space-x-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
@@ -121,11 +129,69 @@ const Navbar = () => {
                 className="ml-2 flex items-center space-x-2 px-3 py-1.5 bg-slate-800/80 hover:bg-slate-700 rounded-xl text-slate-400 hover:text-white text-xs transition border border-slate-700/50"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                <kbd className="hidden md:inline text-[9px] bg-slate-700 px-1 py-0.5 rounded border border-slate-600 font-black">CMD+K</kbd>
+                <kbd className="hidden lg:inline text-[9px] bg-slate-700 px-1 py-0.5 rounded border border-slate-600 font-black">CMD+K</kbd>
+              </button>
+            </div>
+
+            {/* Mobile Actions */}
+            <div className="flex md:hidden items-center space-x-2">
+              <button
+                onClick={() => setSearchOpen(true)}
+                className="p-2 text-slate-400 hover:text-white transition"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              </button>
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-2 text-slate-400 hover:text-white transition focus:outline-none"
+              >
+                {mobileMenuOpen ? (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                ) : (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                )}
               </button>
             </div>
           </div>
         </div>
+
+        {/* Mobile menu drawer */}
+        <motion.div 
+          initial={false}
+          animate={mobileMenuOpen ? "open" : "closed"}
+          variants={{
+            open: { height: 'auto', opacity: 1, display: 'block' },
+            closed: { height: 0, opacity: 0, transitionEnd: { display: 'none' } }
+          }}
+          className="md:hidden border-t border-slate-700/50 bg-slate-900/95 overflow-hidden backdrop-blur-xl"
+        >
+          <div className="p-4 space-y-2">
+            <NavLink to="/dashboard" onClick={() => setMobileMenuOpen(false)} className={mobileLink}>
+              🏠 Dashboard
+            </NavLink>
+            
+            <div className="pt-4 pb-2 px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Visual Suite</div>
+            <NavLink to="/globe" onClick={() => setMobileMenuOpen(false)} className={mobileLink}>🌐 3D Globe</NavLink>
+            <NavLink to="/map" onClick={() => setMobileMenuOpen(false)} className={mobileLink}>🗺 Risk Map</NavLink>
+            
+            <div className="pt-4 pb-2 px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Intelligence</div>
+            <NavLink to="/compare" onClick={() => setMobileMenuOpen(false)} className={mobileLink}>⚖️ Portfolio Compare</NavLink>
+            <NavLink to="/contagion" onClick={() => setMobileMenuOpen(false)} className={mobileLink}>🔗 Contagion Network</NavLink>
+            <NavLink to="/calendar" onClick={() => setMobileMenuOpen(false)} className={mobileLink}>📅 Macro Calendar</NavLink>
+            
+            <div className="pt-4 pb-2 px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Resources</div>
+            <NavLink to="/features" onClick={() => setMobileMenuOpen(false)} className={mobileLink}>🚀 Capabilities</NavLink>
+            <NavLink to="/crisis-history" onClick={() => setMobileMenuOpen(false)} className={mobileLink}>📜 Crisis History</NavLink>
+          </div>
+          <div className="p-6 border-t border-slate-800">
+             <button 
+               onClick={() => { setMobileMenuOpen(false); navigate('/dashboard'); }}
+               className="w-full py-4 bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-2xl text-white font-bold shadow-lg"
+             >
+               Launch Terminal
+             </button>
+          </div>
+        </motion.div>
       </motion.nav>
 
       <SearchPalette countries={countries} isOpen={searchOpen} onClose={() => setSearchOpen(false)} />

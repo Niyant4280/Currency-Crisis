@@ -165,33 +165,41 @@ const CountryDetail = () => {
     <div className="space-y-8 max-w-6xl mx-auto py-6">
       {/* Header section */}
       <motion.div 
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="flex items-center space-x-6 glass-panel p-6 rounded-3xl"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col md:flex-row items-center gap-6 glass-panel p-6 rounded-3xl border border-slate-700/50"
       >
-        <button onClick={() => navigate(-1)} className="p-3 bg-slate-800 hover:bg-slate-700 rounded-full text-slate-300 transition shadow-inner">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-        </button>
-        <div className="w-16 h-16 rounded-full overflow-hidden border-4 border-slate-700 shadow-[0_0_20px_rgba(0,0,0,0.5)] flex items-center justify-center bg-slate-800">
-             <span className={`fi fi-${flagCode} text-4xl`}></span>
-        </div>
-        <div>
-          <h1 className="text-4xl font-bold text-white tracking-tight drop-shadow-md">{country.name}</h1>
-          <div className="flex items-center space-x-3 mt-2">
-            <span className={`px-4 py-1 rounded-full text-sm font-bold tracking-widest ${getRiskBadge(country.latest_stress?.risk_level)}`}>
-              {country.latest_stress?.risk_level || 'UNKNOWN'} RISK
-            </span>
-            <span className="text-slate-400 font-semibold">{country.currency_code}</span>
-            <div className="flex items-center space-x-2 px-3 py-0.5 bg-slate-800/80 rounded-lg border border-slate-700">
-               <div className="w-2 h-2 rounded-full bg-indigo-400"></div>
-               <span className="text-[10px] font-black text-slate-300 uppercase tracking-tighter">Confidence: {confidencePercent}%</span>
+        <div className="flex items-center space-x-4 w-full md:w-auto">
+          <button onClick={() => navigate(-1)} className="p-3 bg-slate-800 hover:bg-slate-700 rounded-full text-slate-300 transition shadow-inner">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+          </button>
+          <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-slate-700 shadow-xl flex items-center justify-center bg-slate-800">
+               <span className={`fi fi-${flagCode} text-3xl`}></span>
+          </div>
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight leading-none">{country.name}</h1>
+            <div className="flex items-center space-x-2 mt-1.5">
+               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{country.currency_code}</span>
+               <div className="w-1 h-1 bg-slate-700 rounded-full"></div>
+               <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest leading-none">Rank #{rank}</span>
             </div>
           </div>
         </div>
+
+        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          <span className={`px-4 py-2 rounded-xl text-[10px] font-black tracking-widest uppercase border ${getRiskBadge(country.latest_stress?.risk_level)}`}>
+            {country.latest_stress?.risk_level || 'UNKNOWN'} RISK
+          </span>
+          <div className="hidden sm:flex items-center space-x-2 px-3 py-1.5 bg-slate-800/80 rounded-xl border border-slate-700">
+             <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+             <span className="text-[10px] font-black text-slate-300 uppercase tracking-tighter">Confidence: {confidencePercent}%</span>
+          </div>
+        </div>
+
         {/* Export Buttons */}
-        <div className="ml-auto flex items-center space-x-2">
-          <button onClick={exportToCSV} className="px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-300 text-sm border border-slate-700/50 transition font-medium">📥 CSV Data</button>
-          <button onClick={exportToPDF} className="px-5 py-2 bg-indigo-500 hover:bg-indigo-400 rounded-xl text-white text-sm shadow-[0_0_15px_rgba(99,102,241,0.4)] transition font-black tracking-tight pulse-glow">📄 GENERATE DOSSIER</button>
+        <div className="md:ml-auto flex items-center gap-2 w-full md:w-auto">
+          <button onClick={exportToCSV} className="flex-1 md:flex-none px-4 py-3 bg-slate-800 hover:bg-slate-700 rounded-2xl text-slate-300 text-[10px] font-black uppercase tracking-widest border border-slate-700/50 transition">📥 CSV</button>
+          <button onClick={exportToPDF} className="flex-[2] md:flex-none px-6 py-3 bg-indigo-500 hover:bg-indigo-400 rounded-2xl text-white text-[10px] font-black uppercase tracking-widest shadow-lg transition">📄 REPORT</button>
         </div>
       </motion.div>
 

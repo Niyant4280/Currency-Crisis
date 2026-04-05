@@ -78,37 +78,38 @@ const RiskGlobe = () => {
             />
 
             {/* Overlay UI */}
-            <div className="absolute top-10 left-10 z-10 pointer-events-none">
+            <div className="absolute top-6 left-6 right-6 md:top-10 md:left-10 md:right-auto z-10 pointer-events-none">
                 <motion.div 
-                    initial={{ x: -100, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    className="glass-panel p-8 border-l-4 border-indigo-500 max-w-md pointer-events-auto"
+                    initial={{ y: -20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    className="glass-panel p-5 md:p-8 border-l-4 border-indigo-500 max-w-md pointer-events-auto shadow-2xl backdrop-blur-2xl"
                 >
-                    <h1 className="text-4xl font-black text-white tracking-tighter mb-2">Global Risk Sphere</h1>
-                    <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                    <h1 className="text-2xl md:text-4xl font-black text-white tracking-tighter mb-2">Global Risk Sphere</h1>
+                    <p className="text-slate-400 text-[10px] md:text-sm font-medium leading-relaxed">
                         A real-time 3D visualization of macroeconomic stress clusters. 
                         Taller, redder spikes indicate immediate systemic threat.
                     </p>
                     
-                    <div className="mt-8 flex flex-col space-y-3">
-                         <div className="flex items-center space-x-3">
-                             <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">Critical (&gt;75)</span>
+                    <div className="mt-4 md:mt-8 flex flex-col md:flex-row md:space-x-6 space-y-2 md:space-y-0">
+                         <div className="flex items-center space-x-2">
+                             <div className="w-2 h-4 md:w-3 md:h-6 bg-rose-500 rounded-full shadow-[0_0_8px_#f43f5e]"></div>
+                             <span className="text-[9px] md:text-xs font-bold text-slate-300 uppercase tracking-widest">Critical</span>
                          </div>
-                         <div className="flex items-center space-x-3">
-                             <div className="w-3 h-6 bg-orange-500 rounded-full"></div>
-                             <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">Warning (55-75)</span>
+                         <div className="flex items-center space-x-2">
+                             <div className="w-2 h-3 md:w-3 md:h-5 bg-orange-500 rounded-full"></div>
+                             <span className="text-[9px] md:text-xs font-bold text-slate-300 uppercase tracking-widest">Warning</span>
                          </div>
-                         <div className="flex items-center space-x-3">
-                             <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                             <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">Stable (&lt;30)</span>
+                         <div className="flex items-center space-x-2">
+                             <div className="w-2 h-2 md:w-3 md:h-3 bg-emerald-500 rounded-full"></div>
+                             <span className="text-[9px] md:text-xs font-bold text-slate-300 uppercase tracking-widest">Stable</span>
                          </div>
                     </div>
                 </motion.div>
             </div>
 
-            <div className="absolute bottom-10 right-10 z-10 text-right pointer-events-none">
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2">Instructions</p>
-                <p className="text-white/60 text-[11px] bg-black/40 px-3 py-1 rounded inline-block">Drag to rotate • Scroll to zoom • Click points for details</p>
+            <div className="absolute bottom-6 left-6 right-6 md:bottom-10 md:right-10 md:left-auto z-10 text-center md:text-right pointer-events-none">
+                <p className="text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2">Institutional Advisory</p>
+                <p className="text-white/40 text-[9px] md:text-[11px] bg-black/40 px-3 py-1.5 rounded-full border border-white/5 inline-block backdrop-blur-md">Drag to rotate • Zoom to explore • Click points for details</p>
             </div>
             
             {/* Visual Flare */}

@@ -52,10 +52,18 @@ const ContagionHeatmap = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-12 items-start">
-                <div className="lg:col-span-3 overflow-x-auto pb-4">
-                    <div className="min-w-[600px] border border-slate-800 rounded-3xl p-6 bg-slate-900/40 relative">
-                        {/* Table Header (Top) */}
-                        <div className="flex mb-4 ml-24">
+                <div className="lg:col-span-3">
+                    <div className="flex items-center justify-between mb-4 md:hidden">
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center">
+                            <svg className="w-4 h-4 mr-1 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                            Swipe to Explore Matrix
+                        </span>
+                    </div>
+
+                    <div className="overflow-x-auto pb-6 scrollbar-thin scrollbar-thumb-indigo-500/20">
+                        <div className="min-w-[800px] border border-slate-800 rounded-3xl p-8 bg-slate-900/40 relative backdrop-blur-xl">
+                            {/* Table Header (Top) */}
+                            <div className="flex mb-6 ml-24">
                             {countries.map(c => (
                                 <div key={c.country_code} className="flex-1 text-center">
                                     <span className="text-[10px] font-black text-slate-500 uppercase rotate-[30deg] block mb-2">{c.country_code}</span>
@@ -104,6 +112,7 @@ const ContagionHeatmap = () => {
                         <div className="flex items-center space-x-2">
                              <div className="w-4 h-4 bg-indigo-600/90 rounded shadow-[0_0_8px_rgba(79,70,229,0.5)]"></div>
                              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Systemic Linkage</span>
+                        </div>
                         </div>
                     </div>
                 </div>
