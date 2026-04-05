@@ -57,11 +57,11 @@ const Navbar = () => {
 
             <div className="flex items-center space-x-2">
               <NavLink to="/dashboard" className={navItem} end>Dashboard</NavLink>
-              <NavLink to="/features" className={navItem}>🚀 Features</NavLink>
               <NavLink to="/map" className={navItem}>🗺 Map</NavLink>
               <NavLink to="/compare" className={navItem}>⚖️ Compare</NavLink>
               <NavLink to="/calendar" className={navItem}>📅 Calendar</NavLink>
               <NavLink to="/contagion" className={navItem}>🔗 Contagion</NavLink>
+              <NavLink to="/features" className={navItem}>🚀 Features</NavLink>
               <NavLink to="/crisis-history" className={navItem}>📜 History</NavLink>
 
               {/* Search Button */}
