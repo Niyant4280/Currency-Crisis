@@ -38,6 +38,16 @@ app.register_blueprint(countries_bp, url_prefix="/api")
 app.register_blueprint(crisis_bp, url_prefix="/api")
 
 
+# ── Root Landing ─────────────────────────────────────────────
+@app.route("/")
+def index():
+    return jsonify({
+        "success": True,
+        "message": "Currency Crisis EWS Analytical Engine is Live",
+        "endpoints": ["/api/health", "/api/status", "/api/leaderboard", "/api/calendar"]
+    })
+
+
 # ── Health check ────────────────────────────────────────────
 @app.route("/api/health")
 def health():
