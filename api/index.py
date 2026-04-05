@@ -13,12 +13,12 @@ from api.routes.countries import countries_bp
 from api.routes.crisis import crisis_bp
 
 app = Flask(__name__)
-# Maximum CORS Compatibility
-CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
+# Institutional CORS: Allow all origins for public dashboard accessibility
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 @app.after_request
 def add_cors_headers(response):
-    """Fallback CORS headers directly onto every response."""
+    """Institutional CORS headers for maximum interoperability."""
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
     response.headers["Access-Control-Allow-Methods"] = "GET,PUT,POST,DELETE,OPTIONS"
