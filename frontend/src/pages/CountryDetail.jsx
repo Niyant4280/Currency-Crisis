@@ -108,11 +108,11 @@ const CountryDetail = () => {
   if (!country) return <div className="text-center text-red-400 text-xl font-bold mt-20">Country not found</div>;
 
   const latestIndicators = {
-    inflation: { value: country.indicators?.inflation?.value, isEstimate: country.indicators?.inflation?.is_estimate },
-    reserves: { value: country.indicators?.reserves?.value, isEstimate: country.indicators?.reserves?.is_estimate },
-    debt_gdp: { value: country.indicators?.debt_gdp?.value, isEstimate: country.indicators?.debt_gdp?.is_estimate },
-    current_account: { value: country.indicators?.current_account?.value, isEstimate: country.indicators?.current_account?.is_estimate },
-    fx_volatility: { value: country.indicators?.fx_volatility?.value, isEstimate: country.indicators?.fx_volatility?.is_estimate },
+    inflation: { value: indicators?.inflation?.at(-1)?.value, isEstimate: indicators?.inflation?.at(-1)?.is_estimate },
+    reserves: { value: indicators?.reserves?.at(-1)?.value, isEstimate: indicators?.reserves?.at(-1)?.is_estimate },
+    debt_gdp: { value: indicators?.debt_gdp?.at(-1)?.value, isEstimate: indicators?.debt_gdp?.at(-1)?.is_estimate },
+    current_account: { value: indicators?.current_account?.at(-1)?.value, isEstimate: indicators?.current_account?.at(-1)?.is_estimate },
+    fx_volatility: { value: indicators?.fx_volatility?.at(-1)?.value, isEstimate: indicators?.fx_volatility?.at(-1)?.is_estimate },
   };
 
   const confidenceScore = Object.values(latestIndicators).filter(i => i.value !== undefined && !i.isEstimate).length;
