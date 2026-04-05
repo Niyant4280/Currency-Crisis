@@ -79,8 +79,36 @@ const Home = () => {
   );
 
   if (error) return (
-    <div className="bg-red-500/20 border border-red-500 text-red-500 p-4 rounded-xl m-6 backdrop-blur-sm">
-      <p className="font-bold">Error:</p> {error}
+    <div className="bg-red-500/20 border border-red-500 text-red-500 p-6 rounded-xl m-6 backdrop-blur-md shadow-[0_0_50px_rgba(239,68,68,0.2)]">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="font-bold text-lg mb-1 flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            Connectivity Interrupt
+          </p>
+          <p className="opacity-80">{error}</p>
+        </div>
+        <button onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 transition shadow-lg">
+          Reconnect
+        </button>
+      </div>
+      
+      {/* Technical Audit Dropdown for Mobile Diagnostics */}
+      <details className="mt-4 border-t border-red-500/30 pt-4">
+        <summary className="text-xs uppercase tracking-widest font-bold cursor-pointer hover:opacity-100 opacity-60 transition">
+          View Technical Suite Audit
+        </summary>
+        <div className="mt-3 p-3 bg-black/40 rounded-lg font-mono text-[10px] overflow-x-auto whitespace-pre border border-white/5">
+          {JSON.stringify({
+            timestamp: new Date().toISOString(),
+            endpoint: "/api/leaderboard",
+            platform: navigator.platform,
+            userAgent: navigator.userAgent,
+            errorHash: error
+          }, null, 2)}
+        </div>
+      </details>
     </div>
   );
 
