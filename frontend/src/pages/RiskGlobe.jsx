@@ -92,8 +92,7 @@ const RiskGlobe = () => {
                     
                     <div className="mt-8 flex flex-col space-y-3">
                          <div className="flex items-center space-x-3">
-                             <div className="w-3 h-10 bg-rose-500 rounded-full"></div>
-                             <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">Critical (>75)</span>
+                             <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">Critical (&gt;75)</span>
                          </div>
                          <div className="flex items-center space-x-3">
                              <div className="w-3 h-6 bg-orange-500 rounded-full"></div>
@@ -101,7 +100,7 @@ const RiskGlobe = () => {
                          </div>
                          <div className="flex items-center space-x-3">
                              <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                             <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">Stable (<30)</span>
+                             <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">Stable (&lt;30)</span>
                          </div>
                     </div>
                 </motion.div>
