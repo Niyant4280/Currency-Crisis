@@ -1,0 +1,10 @@
+# Ignore backend files for Vercel deployment (handled by Render)
+api/
+backend/
+pipeline/
+requirements.txt
+wsgi.py
+.python-version
+venv/
+__pycache__/
+*.pyc
