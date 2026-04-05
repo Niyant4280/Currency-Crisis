@@ -3,13 +3,10 @@
   "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.py" },
-    { "source": "/(.*)", "destination": "/$1" }
-  ],
-  "crons": [
     {
-      "path": "/api/internal/cron",
-      "schedule": "0 0 * * *"
-    }
+      "source": "/api/(.*)",
+      "destination": "https://currency-crisis.onrender.com/api/$1"
+    },
+    { "source": "/(.*)", "destination": "/$1" }
   ]
 }
