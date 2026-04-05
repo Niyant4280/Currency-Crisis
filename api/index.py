@@ -13,7 +13,25 @@ from api.routes.countries import countries_bp
 from api.routes.crisis import crisis_bp
 
 app = Flask(__name__)
-CORS(app) # Allow all origins for Vercel -> Render cross-domain support
+# Maximum CORS Compatibility
+CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
+
+@app.after_request
+def add_cors_headers(response):
+    """Fallback CORS headers directly onto every response."""
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET,PUT,POST,DELETE,OPTIONS"
+    return response
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """Global error handler to ensure JSON responses even on crashes."""
+    return jsonify({
+        "success": False, 
+        "error": str(e),
+        "message": "Institutional Intelligence Suite Internal Error"
+    }), 500
 
 # ── Register blueprints ────────────────────────────────────
 app.register_blueprint(countries_bp, url_prefix="/api")
@@ -23,7 +41,7 @@ app.register_blueprint(crisis_bp, url_prefix="/api")
 # ── Health check ────────────────────────────────────────────
 @app.route("/api/health")
 def health():
-    return {"success": True, "data": {"status": "ok"}}
+    return jsonify({"success": True, "data": {"status": "ok"}})
 
 
 # ── System Status ─────────────────────────────────────────────
