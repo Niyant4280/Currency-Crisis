@@ -8,9 +8,9 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from datetime import timezone
 
-from db import db, ensure_indexes          # noqa: F401  — triggers index creation
-from routes.countries import countries_bp
-from routes.crisis import crisis_bp
+from api.db import db, ensure_indexes          # noqa: F401  — triggers index creation
+from api.routes.countries import countries_bp
+from api.routes.crisis import crisis_bp
 
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173", "http://127.0.0.1:5173"])

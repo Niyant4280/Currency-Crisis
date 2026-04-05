@@ -5,7 +5,7 @@ Crisis-history API endpoint.
 """
 
 from flask import Blueprint, jsonify
-from db import db
+from api.db import db
 
 crisis_bp = Blueprint("crisis", __name__)
 

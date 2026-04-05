@@ -6,7 +6,7 @@ All country-related API endpoints.
 
 from flask import Blueprint, jsonify
 from bson import ObjectId
-from db import db
+from api.db import db
 
 countries_bp = Blueprint("countries", __name__)
 
