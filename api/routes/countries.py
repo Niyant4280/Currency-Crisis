@@ -154,20 +154,32 @@ def get_stress_history(code):
 # ── GET /api/leaderboard ───────────────────────────────────
 @countries_bp.route("/leaderboard")
 def leaderboard():
-    """All countries with their latest stress score (if any), sorted descending by score."""
+    """Optimized Leaderboard: Single-pass bulk fetching for peak performance."""
     countries = list(db.countries.find())
+    country_codes = [c["code"] for c in countries]
+    
+    # Bulk fetch latest stress scores to avoid N+1 query problem
+    latest_scores_cursor = db.stress_scores.aggregate([
+        {"$match": {"country_code": {"$in": country_codes}}},
+        {"$sort": {"computed_at": -1}},
+        {"$group": {
+            "_id": "$country_code",
+            "score": {"$first": "$score"},
+            "risk_level": {"$first": "$risk_level"},
+            "computed_at": {"$first": "$computed_at"}
+        }}
+    ])
+    
+    scores_map = {s["_id"]: s for s in latest_scores_cursor}
     data = []
     
     for c in countries:
-        # Get latest stress for this country
-        stress = db.stress_scores.find_one(
-            {"country_code": c["code"]},
-            sort=[("computed_at", -1)]
-        )
+        code = c["code"]
+        stress = scores_map.get(code)
         
         data.append({
             "_id": str(c["_id"]),
-            "country_code": c["code"],
+            "country_code": code,
             "country_name": c.get("name"),
             "flag_emoji": c.get("flag_emoji"),
             "currency_code": c.get("currency_code"),
@@ -176,7 +188,5 @@ def leaderboard():
             "computed_at": stress["computed_at"].isoformat() if stress and stress.get("computed_at") else None,
         })
     
-    # Sort: highest score first, then alphabetically
     data.sort(key=lambda x: (-x["score"], x["country_name"]))
-    
     return jsonify({"success": True, "data": data})
