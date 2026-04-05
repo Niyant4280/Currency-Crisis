@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 export const generateDossier = (country, indicators, history) => {
   const doc = new jsPDF();
@@ -52,7 +52,7 @@ export const generateDossier = (country, indicators, history) => {
     val.recorded_date ? new Date(val.recorded_date).getFullYear() : '—'
   ]);
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: 90,
     head: [['Indicator', 'Value', 'Trend', 'Year']],
     body: tableData,
@@ -61,7 +61,7 @@ export const generateDossier = (country, indicators, history) => {
   });
 
   // AI Analyst Paragraph
-  const finalY = doc.lastAutoTable.finalY + 15;
+  const finalY = (doc).lastAutoTable.finalY + 15;
   doc.setFontSize(14);
   doc.text('AI Risk Intelligence Summary', 14, finalY);
   

@@ -8,19 +8,22 @@ const NewsFeed = ({ countryName, countryCode }) => {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        // Use rss2json API to convert Google News RSS to JSON (CORS-free)
-        const query = encodeURIComponent(`${countryName} economy currency crisis`);
+        const query = encodeURIComponent(`${countryName} economic news currency`);
         const rssUrl = `https://news.google.com/rss/search?q=${query}&hl=en&gl=US&ceid=US:en`;
-        const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=5`;
+        const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
         
         const res = await fetch(apiUrl);
-        const data = await res.json();
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         
+        const data = await res.json();
         if (data.status === 'ok' && data.items) {
           setArticles(data.items.slice(0, 5));
+        } else {
+          setArticles([]);
         }
       } catch (e) {
-        console.warn('News fetch failed', e);
+        console.error('News fetch failed:', e.message);
+        setArticles([]);
       } finally {
         setLoading(false);
       }

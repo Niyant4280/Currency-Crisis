@@ -242,7 +242,7 @@ const CountryDetail = () => {
             </div>
             <span className="text-sm font-medium text-slate-400 bg-slate-800 py-1 px-3 rounded-full border border-slate-700">Institutional Analysis</span>
         </div>
-        <div className="h-80 w-full">
+        <div className="h-80 w-full min-h-[320px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart 
               data={[...stressHistory, ...forecastData]} 
