@@ -19,15 +19,19 @@ const NavDropdown = ({ title, children, icon }) => {
       </button>
       
       {open && (
-        <motion.div 
-          initial={{ opacity: 0, y: 10, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          className="absolute left-0 mt-2 w-48 glass-panel border border-slate-700/50 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl z-[60]"
+        <div 
+          className="absolute left-0 top-full pt-2 w-48 z-[60]"
         >
-          <div className="py-2 flex flex-col">
-            {children}
-          </div>
-        </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, y: 5, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            className="glass-panel border border-slate-700/50 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl"
+          >
+            <div className="py-2 flex flex-col">
+              {children}
+            </div>
+          </motion.div>
+        </div>
       )}
     </div>
   );
