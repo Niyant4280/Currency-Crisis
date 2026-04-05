@@ -31,8 +31,14 @@ def _get_latest_stress(country_code: str):
 
 
 def _get_latest_indicators(country_code: str):
-    """Return latest value for each of the 5 indicator types."""
+    """Return latest value for each of the 5 indicator types, with regional baseline fallbacks."""
     indicator_types = ["inflation", "reserves", "debt_gdp", "current_account", "fx_volatility"]
+    
+    # 1. Look up country's region for a more specific fallback
+    country = db.countries.find_one({"code": country_code})
+    region = country.get("region", "GLB") if country else "GLB"
+    baseline = db.baselines.find_one({"region": region}) or db.baselines.find_one({"region": "GLB"})
+    
     results = {}
     for itype in indicator_types:
         latest = db.indicators.find_one(
@@ -44,14 +50,23 @@ def _get_latest_indicators(country_code: str):
             sort=[("recorded_date", -1)],
             skip=1,
         )
+        
         if latest:
             entry = _serialize(latest)
-            # Trend: compare with previous value
             if prev and prev.get("value") is not None and latest.get("value") is not None:
                 entry["trend"] = "↑" if latest["value"] > prev["value"] else "↓"
             else:
                 entry["trend"] = "—"
-            results[itype] = entry
+            results[itype] = [entry] # Consistent array wrapper for the frontend .at(-1)
+        elif baseline and itype in baseline:
+            # Inject a fallback baseline entry
+            results[itype] = [{
+                "value": baseline[itype],
+                "indicator_type": itype,
+                "is_estimate": True,
+                "trend": "—",
+                "source": f"Institutional Regional Baseline ({region})"
+            }]
     return results
 
 
