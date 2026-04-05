@@ -30,24 +30,52 @@ const IndicatorCard = ({ title, value, unit, icon, delay, isEstimate }) => {
   const display = (value !== null && value !== undefined && !isNaN(parseFloat(value)))
     ? parseFloat(value).toFixed(2)
     : '--';
+    
   return (
     <motion.div 
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3, delay: delay }}
-      className={`glass-card p-6 h-full flex flex-col justify-between border-l-2 ${isEstimate ? 'border-slate-700 opacity-80' : 'border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.15)]'}`}
+      initial={{ opacity: 0, scale: 0.95, y: 15 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: delay, ease: "easeOut" }}
+      whileHover={{ y: -5, transition: { duration: 0.2 } }}
+      className={`relative group glass-card p-6 h-full flex flex-col justify-between border-t-2 overflow-hidden ${
+        isEstimate 
+          ? 'border-indigo-400/30' 
+          : 'border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.05)]'
+      }`}
     >
-      <div className="flex justify-between items-start mb-4">
-        <h4 className="text-slate-400 font-medium text-xs tracking-wide uppercase">{title}</h4>
-        <div className="text-xl opacity-30">{icon}</div>
-      </div>
-      <div className="flex flex-col">
-        <div className="flex items-baseline space-x-1">
-          <span className={`text-2xl font-black tracking-tight ${isEstimate ? 'text-slate-300' : 'text-white font-black drop-shadow-md'}`}>{display}</span>
-          <span className="text-slate-500 font-bold text-[10px] uppercase">{unit}</span>
+      {/* Decorative Background Glow */}
+      <div className={`absolute -right-4 -top-4 w-16 h-16 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity ${
+        isEstimate ? 'bg-indigo-400' : 'bg-emerald-400'
+      }`}></div>
+
+      <div className="flex justify-between items-start mb-4 relative z-10">
+        <div className="flex flex-col">
+          <h4 className="text-slate-500 font-black text-[10px] tracking-[0.2em] uppercase">{title}</h4>
+          <div className="h-0.5 w-4 bg-slate-700 mt-1 rounded-full group-hover:w-8 transition-all duration-300"></div>
         </div>
-        {isEstimate && (
-           <span className="text-[9px] font-black text-indigo-400/80 mt-1 tracking-widest uppercase italic">Institutional Est.</span>
+        <div className="text-xl opacity-20 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300">{icon}</div>
+      </div>
+
+      <div className="flex flex-col relative z-10">
+        <div className="flex items-baseline space-x-1.5 mt-2">
+          <span className={`text-3xl font-black tracking-tighter transition-colors ${
+            isEstimate ? 'text-slate-300' : 'text-white'
+          } drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]`}>
+            {display}
+          </span>
+          <span className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">{unit}</span>
+        </div>
+        
+        {isEstimate ? (
+          <div className="flex items-center space-x-1.5 mt-3 px-2 py-1 bg-indigo-500/10 border border-indigo-400/20 rounded-md w-fit">
+            <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></div>
+            <span className="text-[8px] font-black text-indigo-400 tracking-widest uppercase italic">Institutional Est.</span>
+          </div>
+        ) : (
+          <div className="flex items-center space-x-1.5 mt-3 px-2 py-1 bg-emerald-500/5 border border-emerald-500/10 rounded-md w-fit">
+             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]"></div>
+             <span className="text-[8px] font-black text-emerald-400/60 tracking-widest uppercase">Verified Report</span>
+          </div>
         )}
       </div>
     </motion.div>

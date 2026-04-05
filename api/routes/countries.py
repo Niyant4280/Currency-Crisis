@@ -51,7 +51,7 @@ def _get_latest_indicators(country_code: str):
             skip=1,
         )
         
-        if latest:
+        if latest and latest.get("value") is not None:
             entry = _serialize(latest)
             if prev and prev.get("value") is not None and latest.get("value") is not None:
                 entry["trend"] = "↑" if latest["value"] > prev["value"] else "↓"
@@ -59,6 +59,7 @@ def _get_latest_indicators(country_code: str):
                 entry["trend"] = "—"
             results[itype] = entry
         elif baseline and itype in baseline:
+            # Dynamic Self-Healing: Inject baseline if official record is missing or NULL
             results[itype] = {
                 "value": baseline[itype],
                 "indicator_type": itype,
