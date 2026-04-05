@@ -7,6 +7,7 @@ All country-related API endpoints.
 from flask import Blueprint, jsonify
 from bson import ObjectId
 from api.db import db
+from api.services.intelligence import calculate_market_sentiment, calculate_forecast
 
 countries_bp = Blueprint("countries", __name__)
 
@@ -78,8 +79,18 @@ def get_country(code):
         return jsonify({"success": False, "error": "Country not found"}), 404
 
     country = _serialize(country)
-    country["latest_stress"] = _get_latest_stress(code)
-    country["indicators"] = _get_latest_indicators(code)
+    latest_stress = _get_latest_stress(code)
+    indicators = _get_latest_indicators(code)
+    
+    # Get history for intelligence models
+    history_docs = list(db.stress_scores.find({"country_code": code}).sort("computed_at", 1))
+    history = [_serialize(d) for d in history_docs]
+
+    country["latest_stress"] = latest_stress
+    country["indicators"] = indicators
+    country["sentiment"] = calculate_market_sentiment(indicators, history)
+    country["forecast"] = calculate_forecast(history)
+    
     return jsonify({"success": True, "data": country})
 
 

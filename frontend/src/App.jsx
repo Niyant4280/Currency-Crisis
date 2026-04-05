@@ -11,6 +11,7 @@ import WorldMap from './pages/WorldMap';
 import Calendar from './pages/Calendar';
 import Contagion from './pages/Contagion';
 import Features from './pages/Features';
+import RiskGlobe from './pages/RiskGlobe';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/contagion" element={<Contagion />} />
           <Route path="/features" element={<Features />} />
+          <Route path="/globe" element={<RiskGlobe />} />
         </Routes>
       </main>
     </div>

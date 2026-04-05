@@ -17,11 +17,13 @@
     "jspdf-autotable": "^5.0.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-globe.gl": "^2.37.0",
     "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.13.2",
     "react-simple-maps": "^3.0.0",
     "react-tooltip": "^5.30.0",
-    "recharts": "^3.8.1"
+    "recharts": "^3.8.1",
+    "three": "^0.183.2"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",

@@ -12,6 +12,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { motion } from 'framer-motion';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { generateDossier } from '../services/reportService';
 
 const getRiskBadge = (level) => {
   switch (level) {
@@ -56,6 +57,7 @@ const CountryDetail = () => {
   const [country, setCountry] = useState(null);
   const [indicators, setIndicators] = useState([]);
   const [stressHistory, setStressHistory] = useState([]);
+  const [forecastData, setForecastData] = useState([]);
   const [rank, setRank] = useState(null);
   const [loading, setLoading] = useState(true);
   const [simulatedScore, setSimulatedScore] = useState(null);
@@ -75,6 +77,10 @@ const CountryDetail = () => {
           year: new Date(h.computed_at || h.recorded_date).getFullYear(),
           score: h.score
         })));
+        
+        if (cRes.data.data.forecast) {
+          setForecastData(cRes.data.data.forecast);
+        }
         
         const board = lRes.data.data;
         const idx = board.findIndex(c => c.country_code === code.toUpperCase());
@@ -117,17 +123,7 @@ const CountryDetail = () => {
   };
 
   const exportToPDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(20); doc.text(`${country.name} — Risk Report`, 14, 20);
-    doc.setFontSize(12); doc.setTextColor(150);
-    doc.text(`Risk Level: ${country.latest_stress?.risk_level || 'N/A'}   Stress Score: ${(country.latest_stress?.score || 0).toFixed(1)}`, 14, 30);
-    autoTable(doc, {
-      startY: 40,
-      head: [['Year', 'Stress Score']],
-      body: stressHistory.map(h => [h.year, h.score?.toFixed(2)]),
-      theme: 'striped',
-    });
-    doc.save(`${country.code}_risk_report.pdf`);
+    generateDossier(country, country.indicators, stressHistory);
   };
 
   return (
@@ -155,8 +151,8 @@ const CountryDetail = () => {
         </div>
         {/* Export Buttons */}
         <div className="ml-auto flex items-center space-x-2">
-          <button onClick={exportToCSV} className="px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-300 text-sm border border-slate-700/50 transition font-medium">📥 CSV</button>
-          <button onClick={exportToPDF} className="px-3 py-2 bg-indigo-500/20 hover:bg-indigo-500/30 rounded-xl text-indigo-300 text-sm border border-indigo-500/30 transition font-medium">📄 PDF</button>
+          <button onClick={exportToCSV} className="px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-300 text-sm border border-slate-700/50 transition font-medium">📥 CSV Data</button>
+          <button onClick={exportToPDF} className="px-5 py-2 bg-indigo-500 hover:bg-indigo-400 rounded-xl text-white text-sm shadow-[0_0_15px_rgba(99,102,241,0.4)] transition font-black tracking-tight pulse-glow">📄 GENERATE DOSSIER</button>
         </div>
       </motion.div>
 
@@ -206,8 +202,9 @@ const CountryDetail = () => {
                 transition={{ duration: 0.5, delay: 0.6 }}
                 className="glass-card p-6 flex flex-col justify-center items-center text-center bg-gradient-to-br from-indigo-500/10 to-blue-500/10"
               >
-                 <h4 className="text-slate-300 font-medium text-sm mb-2">Overall Rank</h4>
-                 <span className="text-4xl font-bold text-glow">#{rank}</span>
+                 <h4 className="text-slate-300 font-medium text-sm mb-2">Market Sentiment</h4>
+                 <span className={`text-xl font-black ${country.sentiment?.color}`}>{country.sentiment?.label || 'NEUTRAL'}</span>
+                 <p className="text-[10px] text-slate-500 mt-2 uppercase tracking-widest">DRIVERS: {country.sentiment?.indicator_drivers?.map(d => d.status).join(' • ')}</p>
               </motion.div>
             </div>
           </div>
@@ -239,26 +236,57 @@ const CountryDetail = () => {
         className="glass-card p-8"
       >
         <div className="flex justify-between items-end mb-8">
-            <h3 className="text-2xl font-bold text-white tracking-tight">10-Year Stress Trajectory</h3>
-            <span className="text-sm font-medium text-slate-400 bg-slate-800 py-1 px-3 rounded-full border border-slate-700">Historical Context</span>
+            <div>
+              <h3 className="text-2xl font-bold text-white tracking-tight">10-Year Stress Trajectory</h3>
+              <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Includes 7-Day Predictive Drift Projection</p>
+            </div>
+            <span className="text-sm font-medium text-slate-400 bg-slate-800 py-1 px-3 rounded-full border border-slate-700">Institutional Analysis</span>
         </div>
         <div className="h-80 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={stressHistory} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <AreaChart 
+              data={[...stressHistory, ...forecastData]} 
+              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+            >
               <defs>
                 <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.4}/>
                   <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.2}/>
+                  <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
               <XAxis dataKey="year" stroke="#94a3b8" tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} />
               <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} domain={[0, 100]} />
               <Tooltip 
-                contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderColor: '#334155', borderRadius: '0.75rem', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)' }} 
-                itemStyle={{ color: '#fff', fontWeight: 'bold' }}
+                contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderColor: '#334155', borderRadius: '0.75rem' }} 
+                itemStyle={{ color: '#fff' }}
+                formatter={(value, name, props) => [value.toFixed(1), props.payload.isForecast ? 'Predicted Stress' : 'Stress Score']}
               />
-              <Area type="monotone" dataKey="score" stroke="#4f46e5" strokeWidth={4} fillOpacity={1} fill="url(#colorScore)" activeDot={{ r: 8, fill: '#818cf8', stroke: '#fff', strokeWidth: 2 }} />
+              <Area 
+                type="monotone" 
+                dataKey="score" 
+                stroke="#4f46e5" 
+                strokeWidth={4} 
+                fillOpacity={1} 
+                fill="url(#colorScore)" 
+                activeDot={{ r: 8 }}
+                connectNulls
+              />
+              {forecastData.length > 0 && (
+                <Area 
+                   type="monotone" 
+                   dataKey="score" 
+                   stroke="#f43f5e" 
+                   strokeWidth={3} 
+                   strokeDasharray="5 5" 
+                   fill="url(#colorForecast)" 
+                   connectNulls
+                />
+              )}
             </AreaChart>
           </ResponsiveContainer>
         </div>

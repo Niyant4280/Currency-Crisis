@@ -61,6 +61,7 @@ const Navbar = () => {
               <NavLink to="/compare" className={navItem}>⚖️ Compare</NavLink>
               <NavLink to="/calendar" className={navItem}>📅 Calendar</NavLink>
               <NavLink to="/contagion" className={navItem}>🔗 Contagion</NavLink>
+              <NavLink to="/globe" className={navItem}>🌐 Globe</NavLink>
               <NavLink to="/features" className={navItem}>🚀 Features</NavLink>
               <NavLink to="/crisis-history" className={navItem}>📜 History</NavLink>
 
