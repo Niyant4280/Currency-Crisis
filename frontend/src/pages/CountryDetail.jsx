@@ -206,17 +206,30 @@ const CountryDetail = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
-              className="lg:col-span-1 glass-card p-8 flex flex-col items-center justify-center relative overflow-hidden"
+              className="lg:col-span-1 glass-card p-4 flex flex-col items-center justify-center relative"
             >
                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/50 pointer-events-none"></div>
                <div className="text-center relative z-10 w-full">
                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">
                    {simulatedScore !== null ? '⚡ Simulation Mode' : 'Live Risk Index'}
                  </p>
-                 <StressGauge 
-                   score={simulatedScore !== null ? simulatedScore : (country.latest_stress?.score || 0)} 
-                   riskLevel={simulatedScore !== null ? (simulatedScore > 75 ? 'CRITICAL' : simulatedScore > 55 ? 'HIGH' : simulatedScore > 30 ? 'MEDIUM' : 'LOW') : (country.latest_stress?.risk_level || 'UNKNOWN')} 
-                 />
+                 <div className="relative flex flex-col items-center w-full">
+                   {/* 3D Reflection Layer */}
+                   <div className="absolute inset-0 bg-gradient-to-t from-white/5 to-transparent rounded-full opacity-20 pointer-events-none"></div>
+                   
+                   <div className="w-32 h-16 relative group flex justify-center">
+                     {/* Track */}
+                     <div className="absolute w-28 h-14 border-[8px] border-slate-800 rounded-t-full top-0"></div>
+                     {/* Value Fill with Glow */}
+                     <motion.div 
+                       initial={{ rotate: -90 }}
+                       animate={{ rotate: -90 + ((simulatedScore !== null ? simulatedScore : (country.latest_stress?.score || 0)) * 1.8) }}
+                       transition={{ duration: 1.5, ease: "easeOut" }}
+                       className={`absolute w-28 h-14 border-[8px] bg-gradient-to-r rounded-t-full origin-bottom top-0 ${getGradient(simulatedScore !== null ? simulatedScore : (country.latest_stress?.score || 0))}`}
+                       style={{ clipPath: 'inset(0 0 0 0 round 9999px 9999px 0 0)' }}
+                     ></motion.div>
+                   </div>
+                 </div>
                  {simulatedScore !== null && (
                    <button 
                      onClick={() => setSimulatedScore(null)}
