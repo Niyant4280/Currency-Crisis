@@ -1,0 +1,12 @@
+[
+  { "id": 1, "date": "2026-03-18", "country": "USA", "event": "FOMC Interest Rate Decision", "impact": "CRITICAL", "description": "Federal Reserve expected to signal halt on rate hikes. Major implication for USD-denominated emerging market debt." },
+  { "id": 2, "date": "2026-03-25", "country": "TUR", "event": "CBRT Monetary Policy Committee", "input": "HIGH", "description": "Turkey Central Bank meeting. Markets watching for hawkish shift to combat Lira volatility." },
+  { "id": 3, "date": "2026-04-02", "country": "IND", "event": "RBI Monetary Policy Report", "impact": "MEDIUM", "description": "India's growth forecast update. Inflation targets remain primary focus." },
+  { "id": 4, "date": "2026-04-15", "country": "PAK", "event": "IMF Review Mission", "impact": "CRITICAL", "description": "Crucial review for next tranche of bailout. Failure to meet targets could trigger immediate stress spike." },
+  { "id": 5, "date": "2026-04-20", "country": "BRA", "event": "BCB Copom Meeting", "impact": "HIGH", "description": "Brazil's central bank deciding on SELIC rate. Fiscal stability concerns rising." },
+  { "id": 6, "date": "2026-05-10", "country": "ZAF", "event": "General Election Results", "impact": "CRITICAL", "description": "South Africa goes to the polls. Results will determine fiscal trajectory for the next 5 years." },
+  { "id": 7, "date": "2026-05-22", "country": "ARG", "event": "Debt Servicing Deadline", "impact": "CRITICAL", "description": "Argentina faces $2.4B interest payment. Default risk reaches local peak." },
+  { "id": 8, "date": "2026-06-05", "country": "EGY", "event": "GDP Q1 Release", "impact": "MEDIUM", "description": "Egypt economic growth data. Vital for assessing impact of recent currency devaluation." },
+  { "id": 9, "date": "2026-06-15", "country": "NGA", "event": "Inflation Data Release", "impact": "HIGH", "description": "Nigeria CPI data. Expected to show impact of fuel subsidy removal." },
+  { "id": 10, "date": "2026-07-01", "country": "GLB", "event": "WTO Global Trade Outlook", "impact": "HIGH", "description": "Global trade growth projections for H2 2026. Critical for export-led economies." }
+]

@@ -1,0 +1,71 @@
+"""
+app.py
+======
+Flask application entry-point for Currency Crisis EWS API.
+"""
+
+from flask import Flask, jsonify
+from flask_cors import CORS
+from datetime import timezone
+
+from db import db, ensure_indexes          # noqa: F401  — triggers index creation
+from routes.countries import countries_bp
+from routes.crisis import crisis_bp
+
+app = Flask(__name__)
+CORS(app, origins=["http://localhost:5173", "http://127.0.0.1:5173"])
+
+# ── Register blueprints ────────────────────────────────────
+app.register_blueprint(countries_bp, url_prefix="/api")
+app.register_blueprint(crisis_bp, url_prefix="/api")
+
+
+# ── Health check ────────────────────────────────────────────
+@app.route("/api/health")
+def health():
+    return {"success": True, "data": {"status": "ok"}}
+
+
+# ── System Status ─────────────────────────────────────────────
+@app.route("/api/status")
+def status():
+    """Return last data update timestamps for the live indicator."""
+    latest_score = db.stress_scores.find_one(
+        {}, sort=[("computed_at", -1)]
+    )
+    latest_fx = db.indicators.find_one(
+        {"indicator_type": "fx_volatility"}, sort=[("recorded_date", -1)]
+    )
+    latest_wb = db.indicators.find_one(
+        {"indicator_type": "inflation"}, sort=[("recorded_date", -1)]
+    )
+
+    return jsonify({
+        "success": True,
+        "data": {
+            "last_score_update": latest_score["computed_at"].isoformat() if latest_score and latest_score.get("computed_at") else None,
+            "last_fx_update": latest_fx["recorded_date"].isoformat() if latest_fx and latest_fx.get("recorded_date") else None,
+            "last_wb_update": latest_wb["recorded_date"].isoformat() if latest_wb and latest_wb.get("recorded_date") else None,
+            "total_countries": db.countries.count_documents({}),
+            "total_indicators": db.indicators.count_documents({}),
+        }
+    })
+
+
+import json
+import os
+
+@app.route("/api/calendar")
+def get_calendar():
+    """Return seeded macro-economic events from JSON file."""
+    try:
+        path = os.path.join(os.path.dirname(__file__), "data", "calendar_data.json")
+        with open(path, "r") as f:
+            data = json.load(f)
+        return jsonify({"success": True, "data": data})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)

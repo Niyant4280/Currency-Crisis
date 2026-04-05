@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+venv/
+env/
+.env
+*.pyc
+__pycache__/
+
+# Build 
+dist/
+build/
+.vercel
+
+# IDE & Misc
+.vscode/
+.idea/
+.DS_Store
+*.log
+.gemini/
+antigravity/
+
+# Data
+*.sqlite
+*.db

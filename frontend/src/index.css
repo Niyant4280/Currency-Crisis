@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-slate-100 font-sans antialiased;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(30, 41, 59, 1) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(15, 23, 42, 1) 0px, transparent 50%);
+    background-attachment: fixed;
+  }
+}
+
+@layer components {
+  /* Glassmorphism primitives */
+  .glass-panel {
+    @apply bg-slate-900/40 backdrop-blur-md border border-slate-700/50 shadow-xl;
+  }
+  
+  .glass-card {
+    @apply bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-lg transition-all duration-300;
+  }
+  
+  .glass-card:hover {
+    @apply border-indigo-500/30 shadow-indigo-500/10 bg-slate-800/60 transform -translate-y-1;
+  }
+
+  /* Text gradients */
+  .text-glow {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400;
+  }
+  
+  /* Status glowing badges */
+  .badge-low {
+    @apply bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)];
+  }
+  
+  .badge-medium {
+    @apply bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.1)];
+  }
+  
+  .badge-high {
+    @apply bg-orange-500/10 text-orange-400 border border-orange-500/20 shadow-[0_0_10px_rgba(249,115,22,0.1)];
+  }
+  
+  .badge-critical {
+    @apply bg-rose-500/10 text-rose-400 border border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.1)];
+  }
+  
+  .badge-unknown {
+    @apply bg-slate-500/10 text-slate-400 border border-slate-500/20;
+  }
+}
+
+/* Custom Scrollbar for a premium feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-slate-900/50;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-700/80 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-600;
+}
