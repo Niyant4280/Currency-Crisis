@@ -118,6 +118,7 @@ def get_indicators(code):
     region = country.get("region", "GLB") if country else "GLB"
     baseline = db.baselines.find_one({"region": region}) or db.baselines.find_one({"region": "GLB"})
     
+    indicator_types = ["inflation", "reserves", "debt_gdp", "current_account", "fx_volatility"]
     grouped = {}
     for itype in indicator_types:
         docs = list(db.indicators.find({"country_code": code, "indicator_type": itype}).sort("recorded_date", 1))
