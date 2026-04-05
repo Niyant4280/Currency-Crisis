@@ -2,64 +2,51 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const StressGauge = ({ score, riskLevel }) => {
-  // Map score (0-100) to rotation degree (-90 to 90)
-  const rotation = -90 + (score / 100) * 180;
-
-  const getColor = () => {
-    switch(riskLevel) {
-      case 'CRITICAL': return '#f43f5e'; // rose-500
-      case 'HIGH': return '#f97316';     // orange-500
-      case 'MEDIUM': return '#f59e0b';   // amber-500
-      case 'LOW': return '#10b981';      // emerald-500
-      default: return '#64748b';         // slate-500
-    }
+  const getGradient = (score) => {
+    if (score > 75) return 'from-red-500 to-orange-600 shadow-[0_0_30px_rgba(239,68,68,0.4)]';
+    if (score > 55) return 'from-orange-400 to-red-500 shadow-[0_0_30px_rgba(251,146,60,0.3)]';
+    if (score > 30) return 'from-yellow-400 to-orange-400 shadow-[0_0_30px_rgba(250,204,21,0.2)]';
+    return 'from-emerald-400 to-cyan-500 shadow-[0_0_30px_rgba(52,211,153,0.2)]';
   };
 
-  const color = getColor();
+  const getTextColor = (level) => {
+    if (level === 'CRITICAL') return 'text-red-500';
+    if (level === 'HIGH') return 'text-orange-500';
+    if (level === 'MEDIUM') return 'text-yellow-500 font-bold';
+    return 'text-emerald-500';
+  };
 
   return (
-    <div className="flex flex-col items-center justify-center relative py-10">
-      {/* Background ambient glow */}
-      <div 
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full blur-[50px] opacity-20 pointer-events-none"
-        style={{ backgroundColor: color }}
-      ></div>
-
-      <div className="relative w-64 h-32 overflow-hidden mx-auto z-10">
+    <div className="relative flex flex-col items-center w-full">
+      {/* 3D Reflection Layer */}
+      <div className="absolute inset-0 bg-gradient-to-t from-white/5 to-transparent rounded-full opacity-20 pointer-events-none"></div>
+      
+      <div className="w-40 h-20 relative group flex justify-center">
         {/* Track */}
-        <div className="absolute top-0 left-0 w-64 h-64 border-[30px] border-slate-800 rounded-full box-border"></div>
-        
-        {/* Glowing Gradient Fill */}
+        <div className="absolute w-36 h-18 border-[10px] border-slate-800 rounded-t-full top-0"></div>
+        {/* Value Fill with Glow */}
         <motion.div 
           initial={{ rotate: -90 }}
-          animate={{ rotate: rotation }}
-          transition={{ duration: 1.5, ease: "easeOut", delay: 0.2 }}
-          className="absolute top-0 left-0 w-64 h-64 border-[30px] border-transparent rounded-full box-border border-b-transparent border-l-transparent"
-          style={{ 
-            borderTopColor: color, 
-            borderRightColor: color,
-            filter: `drop-shadow(0 0 10px ${color})`
-          }}
+          animate={{ rotate: -90 + (score * 1.8) }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          className={`absolute w-36 h-18 border-[10px] bg-gradient-to-r rounded-t-full origin-bottom top-0 ${getGradient(score)}`}
+          style={{ clipPath: 'inset(0 0 0 0 round 9999px 9999px 0 0)' }}
         ></motion.div>
-        
-        {/* Needle Anchor */}
-        <div className="absolute bottom-[-15px] left-[113px] w-[30px] h-[30px] rounded-full bg-slate-700 shadow-xl border-4 border-slate-900 z-20"></div>
-        <div className="absolute bottom-[-5px] left-[123px] w-[10px] h-[10px] rounded-full bg-slate-400 shadow-inner z-30"></div>
       </div>
-      
-      <motion.div 
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.8 }}
-        className="mt-6 text-center z-10"
-      >
-        <div className="text-[4rem] font-bold tracking-tighter" style={{ color }}>
+
+      <div className="mt-4 flex flex-col items-center group cursor-default">
+        <motion.span 
+          key={score}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="text-5xl font-black text-white tracking-tighter drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+        >
           {score.toFixed(1)}
-        </div>
-        <div className={`text-xl font-bold uppercase tracking-widest mt-1 drop-shadow-md`} style={{ color }}>
-          {riskLevel} RISK
-        </div>
-      </motion.div>
+        </motion.span>
+        <span className={`text-[10px] font-black uppercase tracking-[0.3em] mt-1 transition-all group-hover:tracking-[0.5em] duration-500 ${getTextColor(riskLevel)}`}>
+          {riskLevel}
+        </span>
+      </div>
     </div>
   );
 };
