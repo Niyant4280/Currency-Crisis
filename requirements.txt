@@ -1,0 +1,8 @@
+flask==3.1.*
+flask-cors==5.*
+pymongo==4.12.*
+python-dotenv==1.*
+requests==2.*
+pandas==2.*
+apscheduler==3.*
+dnspython==2.*
