@@ -26,25 +26,29 @@ const getRiskBadge = (level) => {
 
 const isoToFlag = ISO_TO_FLAG;
 
-const IndicatorCard = ({ title, value, unit, icon, delay }) => {
+const IndicatorCard = ({ title, value, unit, icon, delay, isEstimate }) => {
   const display = (value !== null && value !== undefined && !isNaN(parseFloat(value)))
     ? parseFloat(value).toFixed(2)
     : '--';
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: delay }}
-      whileHover={{ scale: 1.05 }}
-      className="glass-card p-6 h-full flex flex-col justify-between"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3, delay: delay }}
+      className={`glass-card p-6 h-full flex flex-col justify-between border-l-2 ${isEstimate ? 'border-slate-700 opacity-80' : 'border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.15)]'}`}
     >
       <div className="flex justify-between items-start mb-4">
-        <h4 className="text-slate-400 font-medium text-sm tracking-wide">{title}</h4>
-        <div className="text-2xl opacity-50">{icon}</div>
+        <h4 className="text-slate-400 font-medium text-xs tracking-wide uppercase">{title}</h4>
+        <div className="text-xl opacity-30">{icon}</div>
       </div>
-      <div className="flex items-baseline space-x-1">
-        <span className="text-3xl font-bold text-white tracking-tight">{display}</span>
-        <span className="text-slate-400 font-medium text-sm">{unit}</span>
+      <div className="flex flex-col">
+        <div className="flex items-baseline space-x-1">
+          <span className={`text-2xl font-black tracking-tight ${isEstimate ? 'text-slate-300' : 'text-white font-black drop-shadow-md'}`}>{display}</span>
+          <span className="text-slate-500 font-bold text-[10px] uppercase">{unit}</span>
+        </div>
+        {isEstimate && (
+           <span className="text-[9px] font-black text-indigo-400/80 mt-1 tracking-widest uppercase italic">Institutional Est.</span>
+        )}
       </div>
     </motion.div>
   );
@@ -104,12 +108,15 @@ const CountryDetail = () => {
   if (!country) return <div className="text-center text-red-400 text-xl font-bold mt-20">Country not found</div>;
 
   const latestIndicators = {
-    inflation: country.indicators?.inflation?.value,
-    reserves: country.indicators?.reserves?.value,
-    debt_gdp: country.indicators?.debt_gdp?.value,
-    current_account: country.indicators?.current_account?.value,
-    fx_volatility: country.indicators?.fx_volatility?.value,
+    inflation: { value: country.indicators?.inflation?.value, isEstimate: country.indicators?.inflation?.is_estimate },
+    reserves: { value: country.indicators?.reserves?.value, isEstimate: country.indicators?.reserves?.is_estimate },
+    debt_gdp: { value: country.indicators?.debt_gdp?.value, isEstimate: country.indicators?.debt_gdp?.is_estimate },
+    current_account: { value: country.indicators?.current_account?.value, isEstimate: country.indicators?.current_account?.is_estimate },
+    fx_volatility: { value: country.indicators?.fx_volatility?.value, isEstimate: country.indicators?.fx_volatility?.is_estimate },
   };
+
+  const confidenceScore = Object.values(latestIndicators).filter(i => i.value !== undefined && !i.isEstimate).length;
+  const confidencePercent = (confidenceScore / 5) * 100;
 
   const flagCode = isoToFlag[country.code] || 'un';
 
@@ -147,6 +154,10 @@ const CountryDetail = () => {
               {country.latest_stress?.risk_level || 'UNKNOWN'} RISK
             </span>
             <span className="text-slate-400 font-semibold">{country.currency_code}</span>
+            <div className="flex items-center space-x-2 px-3 py-0.5 bg-slate-800/80 rounded-lg border border-slate-700">
+               <div className="w-2 h-2 rounded-full bg-indigo-400"></div>
+               <span className="text-[10px] font-black text-slate-300 uppercase tracking-tighter">Confidence: {confidencePercent}%</span>
+            </div>
           </div>
         </div>
         {/* Export Buttons */}
@@ -191,11 +202,11 @@ const CountryDetail = () => {
 
             {/* Indicators Grid */}
             <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-6">
-              <IndicatorCard delay={0.1} title="Inflation" value={latestIndicators.inflation} unit="%" icon="📈" />
-              <IndicatorCard delay={0.2} title="FX Volatility" value={latestIndicators.fx_volatility} unit="%" icon="💱" />
-              <IndicatorCard delay={0.3} title="Debt to GDP" value={latestIndicators.debt_gdp} unit="%" icon="🏛️" />
-              <IndicatorCard delay={0.4} title="Current Account" value={latestIndicators.current_account} unit="% GDP" icon="📉" />
-              <IndicatorCard delay={0.5} title="FX Reserves" value={latestIndicators.reserves ? latestIndicators.reserves / 1e9 : null} unit="Billion USD" icon="💰" />
+              <IndicatorCard delay={0.1} title="Inflation" value={latestIndicators.inflation.value} isEstimate={latestIndicators.inflation.isEstimate} unit="%" icon="📈" />
+              <IndicatorCard delay={0.2} title="FX Volatility" value={latestIndicators.fx_volatility.value} isEstimate={latestIndicators.fx_volatility.isEstimate} unit="%" icon="💱" />
+              <IndicatorCard delay={0.3} title="Debt to GDP" value={latestIndicators.debt_gdp.value} isEstimate={latestIndicators.debt_gdp.isEstimate} unit="%" icon="🏛️" />
+              <IndicatorCard delay={0.4} title="Current Account" value={latestIndicators.current_account.value} isEstimate={latestIndicators.current_account.isEstimate} unit="% GDP" icon="📉" />
+              <IndicatorCard delay={0.5} title="FX Reserves" value={latestIndicators.reserves.value ? latestIndicators.reserves.value / 1e9 : null} isEstimate={latestIndicators.reserves.isEstimate} unit="Billion USD" icon="💰" />
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
