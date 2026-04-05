@@ -42,7 +42,9 @@ const Home = () => {
       checkAlerts(mapped);
       setLoading(false);
     } catch (err) {
-      setError('Unable to reach backend');
+      console.error("[Institutional Audit] Connectivity Failure:", err);
+      const status = err.response ? `HTTP ${err.response.status}` : (err.request ? "NETWORK TIMEOUT" : "CLIENT ERROR");
+      setError(`Unable to reach backend (${status})`);
       setLoading(false);
     }
   };
