@@ -65,17 +65,25 @@ def risk_level(score: float) -> str:
         return "CRITICAL"
 
 
-def compute_for_country(country_code: str) -> dict | None:
-    """Compute the stress score for a single country."""
+def compute_for_country(country_code: str, target_date: datetime = None) -> dict | None:
+    """
+    Compute the stress score for a single country as of a specific target_date.
+    If target_date is None, uses datetime.now(timezone.utc).
+    """
+    if not target_date:
+        target_date = datetime.now(timezone.utc)
+
     z_scores = {}
     raw_score = 0.0
     missing = []
 
     for itype in INDICATOR_TYPES:
         docs = list(
-            db.indicators.find(
-                {"country_code": country_code, "indicator_type": itype}
-            ).sort("recorded_date", 1)
+            db.indicators.find({
+                "country_code": country_code, 
+                "indicator_type": itype,
+                "recorded_date": {"$lte": target_date}
+            }).sort("recorded_date", 1)
         )
         if len(docs) < 2:
             missing.append(itype)
@@ -99,22 +107,16 @@ def compute_for_country(country_code: str) -> dict | None:
         z_scores[itype] = round(z, 4)
         raw_score += WEIGHTS[itype] * z
 
-    if missing:
-        log.warning("  ⚠  %s — missing indicators: %s", country_code, missing)
-
     if not z_scores:
-        log.warning("  ⚠  %s — no indicator data at all, skipping.", country_code)
         return None
 
     # Re-weight if some indicators are missing
     total_weight = sum(WEIGHTS[k] for k in z_scores)
     if total_weight > 0 and total_weight < 1.0:
-        raw_score = raw_score / total_weight  # scale up proportionally
+        raw_score = raw_score / total_weight
 
-    # Normalize to 0–100
     score = min(max((raw_score + 3) / 6 * 100, 0), 100)
     score = round(score, 2)
-
     level = risk_level(score)
 
     return {
@@ -122,21 +124,26 @@ def compute_for_country(country_code: str) -> dict | None:
         "score": score,
         "risk_level": level,
         "z_scores": z_scores,
-        "computed_at": datetime.now(timezone.utc),
+        "computed_at": target_date,
     }
 
 
 def run():
-    """Compute stress scores for all countries in the DB."""
+    """Compute stress scores for all countries in the DB for the current moment."""
     countries = list(db.countries.find())
     log.info("📊  Computing stress scores for %d countries …", len(countries))
 
     computed = 0
+    now_ts = datetime.now(timezone.utc)
     for c in countries:
         code = c["code"]
-        result = compute_for_country(code)
+        result = compute_for_country(code, now_ts)
         if result:
-            db.stress_scores.insert_one(result)
+            db.stress_scores.update_one(
+                {"country_code": result["country_code"], "computed_at": result["computed_at"]},
+                {"$set": result},
+                upsert=True
+            )
             log.info("  %s  score=%.1f  risk=%s", code, result["score"], result["risk_level"])
             computed += 1
 
