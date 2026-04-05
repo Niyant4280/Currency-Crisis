@@ -4,11 +4,9 @@ import { getLeaderboard, getCountryStressHistory } from '../services/api';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { motion } from 'framer-motion';
 
-const isoToFlag = {
-  'IND': 'in', 'TUR': 'tr', 'ARG': 'ar', 'PAK': 'pk', 'LKA': 'lk',
-  'EGY': 'eg', 'NGA': 'ng', 'BRA': 'br', 'ZAF': 'za', 'IDN': 'id',
-  'MEX': 'mx', 'BGD': 'bd', 'GHA': 'gh', 'KEN': 'ke', 'PHL': 'ph'
-};
+import { ISO_TO_FLAG } from '../constants/countries';
+
+const isoToFlag = ISO_TO_FLAG;
 
 const COLORS = ['#6366f1', '#f43f5e'];
 
@@ -20,14 +18,19 @@ const Compare = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getLeaderboard().then(res => {
-      const mapped = res.data.data.map(c => ({
-        iso_code: c.country_code, name: c.country_name,
-        currency: c.currency_code, latest_stress_score: c.score, risk_level: c.risk_level
-      }));
-      setAllCountries(mapped);
-      setLoading(false);
-    });
+    getLeaderboard()
+      .then(res => {
+        const mapped = res.data.data.map(c => ({
+          iso_code: c.country_code, 
+          name: c.country_name,
+          currency: c.currency_code, 
+          latest_stress_score: c.score, 
+          risk_level: c.risk_level
+        }));
+        setAllCountries(mapped);
+      })
+      .catch(err => console.error("Leaderboard fetch error:", err))
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
@@ -85,6 +88,7 @@ const Compare = () => {
               onChange={e => setSelected(prev => { const n = [...prev]; n[i] = e.target.value; return n; })}
               className="w-full bg-slate-800 text-white px-4 py-2.5 rounded-xl text-sm border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
+              <option value="" disabled>Select Country</option>
               {allCountries.map(c => (
                 <option key={c.iso_code} value={c.iso_code}>{c.name} ({c.iso_code})</option>
               ))}
