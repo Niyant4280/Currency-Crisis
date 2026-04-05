@@ -13,7 +13,7 @@ from api.routes.countries import countries_bp
 from api.routes.crisis import crisis_bp
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:5173", "http://127.0.0.1:5173"])
+CORS(app) # Allow all origins for Vercel -> Render cross-domain support
 
 # ── Register blueprints ────────────────────────────────────
 app.register_blueprint(countries_bp, url_prefix="/api")
