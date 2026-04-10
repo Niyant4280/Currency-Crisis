@@ -1,13 +1,13 @@
 import axios from 'axios';
 
-// Institutional Portfolio Suite - Deployment Version: v2.0.1 (Cache-Bust)
-// Force absolute relative paths for the Vercel Proxy to handle CORS on the server-side
+// Vercel Proxy handles CORS — all requests go through /api
 const API_BASE = '/api';
 
-
+// 60s timeout: Render free tier takes 30–50s to cold-start.
+// Without this, the default 10s timeout always expires before the backend wakes up.
 const api = axios.create({
   baseURL: API_BASE,
-  timeout: 10000,
+  timeout: 60000,
 });
 
 export const getCountries = () => api.get('/countries');
@@ -18,5 +18,7 @@ export const getLeaderboard = () => api.get('/leaderboard');
 export const getCalendar = () => api.get('/calendar');
 export const getCrisisHistory = () => api.get('/crisis-history');
 
-export default api;
+// Lightweight ping used to pre-warm the Render backend on app load
+export const pingBackend = () => api.get('/status', { timeout: 60000 });
 
+export default api;

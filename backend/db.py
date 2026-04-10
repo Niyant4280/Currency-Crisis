@@ -33,7 +33,7 @@ def ensure_indexes():
         [("country_code", ASCENDING), ("computed_at", DESCENDING)],
         name="idx_stress_scores_country_date",
     )
-    print("✅  MongoDB indexes ensured.")
+    print("[OK] MongoDB indexes ensured.")
 
 
 ensure_indexes()

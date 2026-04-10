@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getCountry, getCountryIndicators, getCountryStressHistory, getLeaderboard } from '../services/api';
 import StressGauge from '../components/StressGauge';
@@ -7,12 +7,16 @@ import IndicatorBreakdown from '../components/IndicatorBreakdown';
 import StressCalendar from '../components/StressCalendar';
 import ScenarioSimulator from '../components/ScenarioSimulator';
 import AIAnalyst from '../components/AIAnalyst';
+import WakingPanel from '../components/WakingPanel';
 import { ISO_TO_FLAG } from '../constants/countries';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { motion } from 'framer-motion';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { generateDossier } from '../services/reportService';
+
+const RETRY_WAIT_SECS = 12;
+const MAX_ATTEMPTS    = 5;
 
 const getRiskBadge = (level) => {
   switch (level) {
@@ -85,55 +89,122 @@ const IndicatorCard = ({ title, value, unit, icon, delay, isEstimate }) => {
 const CountryDetail = () => {
   const { code } = useParams();
   const navigate = useNavigate();
-  
-  const [country, setCountry] = useState(null);
-  const [indicators, setIndicators] = useState([]);
+
+  const [country, setCountry]           = useState(null);
+  const [indicators, setIndicators]     = useState([]);
   const [stressHistory, setStressHistory] = useState([]);
   const [forecastData, setForecastData] = useState([]);
-  const [rank, setRank] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [rank, setRank]                 = useState(null);
+  const [loading, setLoading]           = useState(true);
+  const [waking, setWaking]             = useState(false);
+  const [retryIn, setRetryIn]           = useState(0);
+  const [fetchError, setFetchError]     = useState(null);
   const [simulatedScore, setSimulatedScore] = useState(null);
 
-  useEffect(() => {
-    const fetchAll = async () => {
-      try {
-        const [cRes, iRes, sRes, lRes] = await Promise.all([
-          getCountry(code),
-          getCountryIndicators(code),
-          getCountryStressHistory(code),
-          getLeaderboard()
-        ]);
-        setCountry(cRes.data.data);
-        setIndicators(iRes.data.data);
-        setStressHistory(sRes.data.data.map(h => ({
+  const retryTimerRef  = useRef(null);
+  const countdownRef   = useRef(null);
+  const attemptRef     = useRef(0);
+
+  const clearRetryTimers = () => {
+    clearTimeout(retryTimerRef.current);
+    clearInterval(countdownRef.current);
+  };
+
+  const fetchAll = async () => {
+    clearRetryTimers();
+    try {
+      const [cRes, iRes, sRes, lRes] = await Promise.all([
+        getCountry(code),
+        getCountryIndicators(code),
+        getCountryStressHistory(code),
+        getLeaderboard(),
+      ]);
+
+      setCountry(cRes.data.data);
+      setIndicators(iRes.data.data);
+      setStressHistory(
+        sRes.data.data.map(h => ({
           year: new Date(h.computed_at || h.recorded_date).getFullYear(),
-          score: h.score
-        })));
-        
-        if (cRes.data.data.forecast) {
-          setForecastData(cRes.data.data.forecast);
-        }
-        
-        const board = lRes.data.data;
-        const idx = board.findIndex(c => c.country_code === code.toUpperCase());
-        setRank(idx >= 0 ? idx + 1 : '--');
-        
-        setLoading(false);
-      } catch (err) {
-        console.error(err);
+          score: h.score,
+        }))
+      );
+      if (cRes.data.data.forecast) setForecastData(cRes.data.data.forecast);
+
+      const board = lRes.data.data;
+      const idx = board.findIndex(c => c.country_code === code.toUpperCase());
+      setRank(idx >= 0 ? idx + 1 : '--');
+
+      // ── Success ──
+      attemptRef.current = 0;
+      setWaking(false);
+      setFetchError(null);
+      setLoading(false);
+    } catch (err) {
+      attemptRef.current += 1;
+      console.error('[CountryDetail] fetch failed, attempt', attemptRef.current, err);
+
+      if (attemptRef.current <= MAX_ATTEMPTS) {
+        // ── Schedule retry ──
+        setWaking(true);
+        setLoading(true);
+        let remaining = RETRY_WAIT_SECS;
+        setRetryIn(remaining);
+        countdownRef.current = setInterval(() => {
+          remaining -= 1;
+          setRetryIn(remaining);
+          if (remaining <= 0) clearInterval(countdownRef.current);
+        }, 1000);
+        retryTimerRef.current = setTimeout(() => {
+          clearInterval(countdownRef.current);
+          fetchAll();
+        }, RETRY_WAIT_SECS * 1000);
+      } else {
+        // ── Max retries exhausted ──
+        setFetchError('Unable to load country data. Please try again later.');
+        setWaking(false);
         setLoading(false);
       }
-    };
+    }
+  };
+
+  const retryNow = () => {
+    clearRetryTimers();
     fetchAll();
+  };
+
+  useEffect(() => {
+    fetchAll();
+    return () => clearRetryTimers();
   }, [code]);
+
+  // ── Render gates ─────────────────────────────────────────────
+  if (waking) return (
+    <WakingPanel
+      retryIn={retryIn}
+      retryWaitSecs={RETRY_WAIT_SECS}
+      attemptNum={attemptRef.current}
+      maxAttempts={MAX_ATTEMPTS}
+      onRetryNow={retryNow}
+    />
+  );
 
   if (loading) return (
     <div className="flex justify-center items-center h-[70vh]">
-      <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
+      <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.5)]" />
     </div>
   );
-  
-  if (!country) return <div className="text-center text-red-400 text-xl font-bold mt-20">Country not found</div>;
+
+  if (fetchError || !country) return (
+    <div className="flex flex-col items-center justify-center h-[70vh] gap-4">
+      <p className="text-red-400 text-lg font-bold">{fetchError || 'Country not found.'}</p>
+      <button
+        onClick={() => { attemptRef.current = 0; setFetchError(null); setLoading(true); fetchAll(); }}
+        className="px-6 py-3 bg-indigo-500 hover:bg-indigo-400 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition"
+      >
+        Try Again
+      </button>
+    </div>
+  );
 
   const latestIndicators = {
     inflation: { value: indicators?.inflation?.at(-1)?.value, isEstimate: indicators?.inflation?.at(-1)?.is_estimate },

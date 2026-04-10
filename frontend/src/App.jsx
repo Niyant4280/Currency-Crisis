@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
@@ -12,24 +12,32 @@ import Calendar from './pages/Calendar';
 import Contagion from './pages/Contagion';
 import Features from './pages/Features';
 import RiskGlobe from './pages/RiskGlobe';
+import { pingBackend } from './services/api';
 
 function App() {
+  // Pre-warm the Render backend the instant the app loads.
+  // This silently pings /api/status so the cold-start begins immediately,
+  // giving the backend a head-start before the user navigates to the dashboard.
+  useEffect(() => {
+    pingBackend().catch(() => {/* silently ignore — waking panels handle UX */});
+  }, []);
+
   return (
     <div className="min-h-screen bg-background text-textLight">
       <Toaster position="bottom-right" />
       <Navbar />
       <main className="container mx-auto px-4 py-8">
         <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/dashboard" element={<Home />} />
-          <Route path="/country/:code" element={<CountryDetail />} />
+          <Route path="/"               element={<Landing />} />
+          <Route path="/dashboard"      element={<Home />} />
+          <Route path="/country/:code"  element={<CountryDetail />} />
           <Route path="/crisis-history" element={<CrisisHistory />} />
-          <Route path="/compare" element={<Compare />} />
-          <Route path="/map" element={<WorldMap />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/contagion" element={<Contagion />} />
-          <Route path="/features" element={<Features />} />
-          <Route path="/globe" element={<RiskGlobe />} />
+          <Route path="/compare"        element={<Compare />} />
+          <Route path="/map"            element={<WorldMap />} />
+          <Route path="/calendar"       element={<Calendar />} />
+          <Route path="/contagion"      element={<Contagion />} />
+          <Route path="/features"       element={<Features />} />
+          <Route path="/globe"          element={<RiskGlobe />} />
         </Routes>
       </main>
     </div>

@@ -1,13 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getLeaderboard } from '../services/api';
 import CountryCard from '../components/CountryCard';
 import LiveIndicator from '../components/LiveIndicator';
+import WakingPanel from '../components/WakingPanel';
 import { useLiveStatus } from '../hooks/useLiveStatus';
 import { useWatchlist } from '../hooks/useWatchlist';
 import { useAlerts } from '../hooks/useAlerts.jsx';
 import { REGION_MAP } from '../constants/countries';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const RETRY_WAIT_SECS = 15; // seconds between auto-retries
+const MAX_ATTEMPTS = 8;     // give up after this many failed attempts
 
 const Home = () => {
   const navigate = useNavigate();
@@ -18,63 +22,134 @@ const Home = () => {
   const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [waking, setWaking] = useState(false);       // true while retrying cold-start
+  const [retryIn, setRetryIn] = useState(0);          // countdown seconds
   const [filterRegion, setFilterRegion] = useState('All');
   const [sortOption, setSortOption] = useState('stress_desc');
   const [alertThreshold, setAlertThreshold] = useState(threshold);
 
+  const retryTimerRef   = useRef(null);
+  const countdownRef    = useRef(null);
+  const attemptRef      = useRef(0);
+
   const REGIONS = ['All', 'Asia', 'Europe', 'LatAm', 'Africa', 'MENA'];
   const regionMap = REGION_MAP;
 
-  useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
-  }, []);
+  // ── Cleanup helpers ──────────────────────────────────────────
+  const clearRetryTimers = () => {
+    clearTimeout(retryTimerRef.current);
+    clearInterval(countdownRef.current);
+  };
 
+  // ── Start countdown + schedule next fetchData ─────────────────
+  const scheduleRetry = () => {
+    let remaining = RETRY_WAIT_SECS;
+    setRetryIn(remaining);
+
+    countdownRef.current = setInterval(() => {
+      remaining -= 1;
+      setRetryIn(remaining);
+      if (remaining <= 0) clearInterval(countdownRef.current);
+    }, 1000);
+
+    retryTimerRef.current = setTimeout(() => {
+      clearInterval(countdownRef.current);
+      fetchData();
+    }, RETRY_WAIT_SECS * 1000);
+  };
+
+  // ── Main data fetch with retry logic ─────────────────────────
   const fetchData = async () => {
+    clearRetryTimers();
     try {
       const res = await getLeaderboard();
-      if (!res?.data?.data) throw new Error("MALFORMED DATA SIGNAL");
-      
+      if (!res?.data?.data) throw new Error('MALFORMED DATA SIGNAL');
+
       const mapped = res.data.data.map(c => ({
-        iso_code: c.country_code || "UNK",
-        name: c.country_name || "Unknown Entity",
-        currency: c.currency_code || "---",
+        iso_code: c.country_code || 'UNK',
+        name: c.country_name || 'Unknown Entity',
+        currency: c.currency_code || '---',
         latest_stress_score: c.score || 0,
-        risk_level: c.risk_level || "UNKNOWN"
+        risk_level: c.risk_level || 'UNKNOWN',
       }));
-      setCountries(mapped || []);
+
+      // ── Success ──
+      attemptRef.current = 0;
+      setCountries(mapped);
       if (mapped) checkAlerts(mapped);
+      setWaking(false);
+      setError(null);
       setLoading(false);
     } catch (err) {
-      console.error("[Institutional Audit] Connectivity Failure:", err);
-      // Detailed diagnostics for the 'Client Error' vs 'Network' vs 'Backend'
-      const status = err.response ? `HTTP ${err.response.status}` : (err.request ? "NETWORK TIMEOUT" : `APP ERROR: ${err.message}`);
-      setError(`Unable to reach backend (${status})`);
-      setCountries([]);
-      setLoading(false);
+      attemptRef.current += 1;
+      const statusMsg = err.response
+        ? `HTTP ${err.response.status}`
+        : err.request
+        ? 'NETWORK TIMEOUT'
+        : `APP ERROR: ${err.message}`;
+
+      if (attemptRef.current <= MAX_ATTEMPTS) {
+        // ── Keep retrying: show waking panel ──
+        setWaking(true);
+        setLoading(true);
+        scheduleRetry();
+      } else {
+        // ── Gave up after MAX_ATTEMPTS ──
+        setError(`Unable to reach backend (${statusMsg})`);
+        setWaking(false);
+        setLoading(false);
+      }
     }
   };
 
+  const retryNow = () => {
+    clearRetryTimers();
+    fetchData();
+  };
+
+  useEffect(() => {
+    fetchData();
+    // Background refresh every 30s (only when data already loaded)
+    const interval = setInterval(() => {
+      if (!waking && !loading) fetchData();
+    }, 30000);
+    return () => {
+      clearInterval(interval);
+      clearRetryTimers();
+    };
+  }, []);
+
+  // ── Filter + Sort ─────────────────────────────────────────────
   const getFilteredCountries = () => {
     let filtered = [...countries];
     if (filterRegion !== 'All') filtered = filtered.filter(c => regionMap[c.iso_code] === filterRegion);
     filtered.sort((a, b) => {
       const sa = a.latest_stress_score || 0, sb = b.latest_stress_score || 0;
       if (sortOption === 'stress_desc') return sb - sa;
-      if (sortOption === 'stress_asc') return sa - sb;
-      if (sortOption === 'name') return a.name.localeCompare(b.name);
+      if (sortOption === 'stress_asc')  return sa - sb;
+      if (sortOption === 'name')        return a.name.localeCompare(b.name);
       return 0;
     });
     return filtered;
   };
 
-  const watchedCountries = countries.filter(c => isWatched(c.iso_code));
+  const watchedCountries  = countries.filter(c => isWatched(c.iso_code));
   const displayedCountries = getFilteredCountries();
+
+  // ── Render: waking / loading / error / data ──────────────────
+  if (waking) return (
+    <WakingPanel
+      retryIn={retryIn}
+      retryWaitSecs={RETRY_WAIT_SECS}
+      attemptNum={attemptRef.current}
+      maxAttempts={MAX_ATTEMPTS}
+      onRetryNow={retryNow}
+    />
+  );
 
   if (loading) return (
     <div className="flex justify-center items-center h-64">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500" />
     </div>
   );
 
@@ -83,30 +158,26 @@ const Home = () => {
       <div className="flex items-center justify-between">
         <div>
           <p className="font-bold text-lg mb-1 flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
             Connectivity Interrupt
           </p>
           <p className="opacity-80">{error}</p>
         </div>
-        <button onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 transition shadow-lg">
+        <button
+          onClick={() => { attemptRef.current = 0; setError(null); setLoading(true); fetchData(); }}
+          className="px-4 py-2 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 transition shadow-lg"
+        >
           Reconnect
         </button>
       </div>
-      
-      {/* Technical Audit Dropdown for Mobile Diagnostics */}
       <details className="mt-4 border-t border-red-500/30 pt-4">
         <summary className="text-xs uppercase tracking-widest font-bold cursor-pointer hover:opacity-100 opacity-60 transition">
           View Technical Suite Audit
         </summary>
         <div className="mt-3 p-3 bg-black/40 rounded-lg font-mono text-[10px] overflow-x-auto whitespace-pre border border-white/5">
-          {JSON.stringify({
-            timestamp: new Date().toISOString(),
-            endpoint: "/api/leaderboard",
-            platform: navigator.platform,
-            userAgent: navigator.userAgent,
-            errorHash: error
-          }, null, 2)}
+          {JSON.stringify({ timestamp: new Date().toISOString(), endpoint: '/api/leaderboard', platform: navigator.platform, userAgent: navigator.userAgent, errorHash: error }, null, 2)}
         </div>
       </details>
     </div>
@@ -118,7 +189,7 @@ const Home = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <button onClick={() => navigate('/')}
           className="group flex items-center justify-center space-x-2 px-6 py-3 bg-slate-800/80 hover:bg-slate-700/80 rounded-2xl text-slate-300 font-bold transition-all border border-slate-700/50 sm:w-auto w-full">
-          <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+          <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
           <span>Return Home</span>
         </button>
         <div className="grid grid-cols-2 sm:flex items-center gap-3">
